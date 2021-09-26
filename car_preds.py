@@ -1,10 +1,11 @@
 ### it takes around 200 second for the whole code to run 
+#data obtained from https://www.kaggle.com/bartoszpieniak/poland-cars-for-sale-dataset?select=Car_sale_ads.csv
 
 import pandas as pd 
 import numpy as np 
 import tensorflow as tf
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, AdaBoostRegressor, GradientBoostingRegressor
+from sklearn.ensemble import RandomForestRegressor, ExtraTreesRegressor, GradientBoostingRegressor
 from sklearn.metrics import mean_absolute_error, accuracy_score, r2_score
 from xgboost.sklearn import XGBRegressor
 from sklearn.linear_model import LinearRegression
@@ -68,27 +69,14 @@ data = data.dropna(axis=0,how='any',inplace=False)
 
 
 
-#calculating average price for each model 
-car_prices = {}
-
+#function to calculate average price of car by name and year - used to check how far the predicition is from mean value
 def get_price(car_name,year):
 	car_index = vehicle_dict.get(car_name)
 	df = data.loc[data['Vehicle_brand_and_model'] == car_index]
 	df = df.loc[df['Production_year'] == year]
 	
 	return df['Price'].mean()
-
-
-
-price = get_price('Ford Mustang',1976)
-print(price)
-for car in list(data.Vehicle_brand_and_model.unique()):
-	temp = list(data.Vehicle_brand_and_model.unique()).index(car) 
-	temp_df = data.loc[data['Vehicle_brand_and_model'] == car]
-	temp_mean = temp_df['Price'].mean()
-	car_prices[vehicle_list[temp]] = temp_mean
-
-
+	
 
 
 
@@ -109,32 +97,26 @@ price_preds = forest_model.predict(X_valid)
 print('R2 score for predicted labels - Random Forest: ',forest_model.score(X_valid,Y_valid))
 
 
-
-
 ### EXTRA TREES REGRESSION ###
 extra_tree_model = ExtraTreesRegressor(random_state=1)
 extra_tree_model.fit(X_train, Y_train)
 extra_price_preds = extra_tree_model.predict(X_valid)
-#print(forest_model.predict([train_features.iloc[-1,:]]),train_labels.iloc[-1])
 print('R2 score for predicted labels - Extra Trees: ',extra_tree_model.score(X_valid,Y_valid))
 
-### ADA BOOST REGRESSION ###
+### GRADIENT BOOST REGRESSION ###
 grad_model = GradientBoostingRegressor(random_state=1)
 grad_model.fit(X_train, Y_train)
 grad_price_preds = grad_model.predict(X_valid)
-#print(forest_model.predict([train_features.iloc[-1,:]]),train_labels.iloc[-1])
 print('R2 score for predicted labels - Gradient Boost: ',r2_score(np.array(Y_valid), grad_price_preds))
 
 ### XGB BOOST REGRESSION ###
 XGB_model = XGBRegressor(random_state=1)
 XGB_model.fit(X_train, Y_train)
 XGB_price_preds = XGB_model.predict(X_valid)
-#print(forest_model.predict([train_features.iloc[-1,:]]),train_labels.iloc[-1])
 print('R2 score for predicted labels - XGB Boost: ',r2_score(np.array(Y_valid), XGB_price_preds))
 
 ### LINEAR REGRESSION ###
 linear_model = LinearRegression()
 linear_model.fit(X_train, Y_train)
 linear_price_preds = linear_model.predict(X_valid)
-#print(forest_model.predict([train_features.iloc[-1,:]]),train_labels.iloc[-1])
 print('R2 score for predicted labels - Linear Regression: ',r2_score(np.array(Y_valid), linear_price_preds))
